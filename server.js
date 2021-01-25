@@ -27,17 +27,25 @@ app.get('/weather', weatherHandler);
 // });
 
 
-function locationHandler(request, response) {
+function locationHandler(request, response) {  //<<--will only return longitude and latitude, but others (weather, yelp, etc.) will return an array similar to the darksky handler below.
   const geoData = require('./data/geo.json');//<<--will end up changing to the API
   const city = request.query.city;  //<<--gets from the query string
   const location = new Location (city, geoData);
   response.send(location);
 }
 
-function weatherHandler(request, response) {
-  const weatherData = require('./data/posts.json');
-  const weather = new Weather(weatherData);
-  response.send(weather);
+// function weatherHandler(request, response) {  //<<--junk for when he is using darksky.json - this works, but darksky doesn't
+//   const weatherData = require('./data/darksky.json');
+//   const weatherResults = [];  <<--for returning an array of information
+//   weatherData.daily.data.forEach(dailyWeather => {
+//     weatherResults.push(new Weather(dailyWeather));
+//   });
+//   // const weather = new Weather(weatherData);
+//   response.send(weatherResults);
+// }
+
+function weatherHandler(request, response) {  //<<--use when I create real API for weather
+
 }
 
 //Has to be after stuff loads too
@@ -72,9 +80,7 @@ function Location (city, geoData) {  //<<--this is saying that it needs city and
   this.longitude = parseFloat(geoData[0].lon);
 }
 
-function Weather (weatherData) {
-  this.forecast = weatherData[3].title;
-  this.time = weatherData[3].body;
-  // this.latitude = latitude;
-  // this.longitude = longitude;
-}
+// function Weather (weatherData) {  <<--does not work because the darksky file doesn't work for some reason
+//   this.forecast = weatherData.summary;
+//   this.time = weatherData.time;
+// }
