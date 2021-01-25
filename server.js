@@ -4,6 +4,8 @@ require('dotenv').config();
 
 const express = require('express');
 const cors = require('cors');
+const superagent = require('superagent');
+const { json } = require('express');
 
 const PORT = process.env.PORT;
 const app = express();
@@ -26,13 +28,13 @@ app.get('/weather', weatherHandler);
 //   response.send('Weather!');
 // });
 
-
-function locationHandler(request, response) {  //<<--will only return longitude and latitude, but others (weather, yelp, etc.) will return an array similar to the darksky handler below.
-  const geoData = require('./data/geo.json');//<<--will end up changing to the API
-  const city = request.query.city;  //<<--gets from the query string
-  const location = new Location (city, geoData);
-  response.send(location);
-}
+//Handlers used with dummy data
+// function locationHandler(request, response) {  //<<--will only return longitude and latitude, but others (weather, yelp, etc.) will return an array similar to the darksky handler below.
+//   const geoData = require('./data/geo.json');//<<--will end up changing to the API
+//   const city = request.query.city;  //<<--gets from the query string
+//   const location = new Location (city, geoData);
+//   response.send(location);
+// }
 
 // function weatherHandler(request, response) {  //<<--junk for when he is using darksky.json - this works, but darksky doesn't
 //   const weatherData = require('./data/darksky.json');
@@ -43,6 +45,28 @@ function locationHandler(request, response) {  //<<--will only return longitude 
 //   // const weather = new Weather(weatherData);
 //   response.send(weatherResults);
 // }
+
+function locationHandler(request, response) {
+  const city = request.query.city;
+  const url = 'https://us1.locationiq.com/v1/search.php';
+  superagent.get(url)
+    .query({
+      key:  process.env.GEO_KEY,
+      q:  city,
+      format:  'json'
+    })
+    .then(locationResponse => {
+      let geoData = locationResponse.body;
+      console.log(geoData);
+
+      const location = new Location(city, geoData);
+      response.send(location);
+    })
+    .catch(err => {
+      console.log(err);
+      errorHandler(err, request, response);
+    });
+}
 
 function weatherHandler(request, response) {  //<<--use when I create real API for weather
 
