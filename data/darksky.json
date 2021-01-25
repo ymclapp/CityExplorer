@@ -1,8 +1,9 @@
-{
+[
+    {
     "latitude": 47.8209301,
     "longitude": -122.3151314,
     "timezone": "America/Los_Angeles",
-    "currently": {
+    "currently": [
       "time": 1540057361,
       "summary": "Mostly Cloudy",
       "icon": "partly-cloudy-day",
@@ -22,8 +23,8 @@
       "uvIndex": 2,
       "visibility": 6.51,
       "ozone": 246.97
-    },
-    "minutely": {
+    ],
+    "minutely": [
       "summary": "Mostly cloudy for the hour.",
       "icon": "partly-cloudy-day",
       "data": [
@@ -333,7 +334,7 @@
           "precipProbability": 0
         }
       ]
-    },
+    ],
     "hourly": {
       "summary": "Partly cloudy starting tonight.",
       "icon": "partly-cloudy-night",
@@ -1292,7 +1293,7 @@
         }
       ]
     },
-    "daily": {
+    "daily": [
       "summary": "Rain on Wednesday through Friday, with high temperatures peaking at 66°F on Monday.",
       "icon": "rain",
       "data": [
@@ -1625,7 +1626,7 @@
           "apparentTemperatureMaxTime": 1540677600
         }
       ]
-    },
+    ],
     "flags": {
       "sources": [
         "nearest-precip",
@@ -1645,3 +1646,4 @@
     },
     "offset": -7
   }
+]

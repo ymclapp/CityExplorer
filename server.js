@@ -10,9 +10,6 @@ const app = express();
 
 app.use(cors()); //<<--need to have the inner parenthesis
 
-
-
-
 app.get('/', (request, response) => {
   response.send('City Explorer Goes Here!');
 });
@@ -23,10 +20,11 @@ app.get('/bad', (request, response) => {
 
 
 app.get('/location', locationHandler);
+app.get('/weather', weatherHandler);
 
-app.get('/weather', (request, response) => {
-  response.send('Weather!');
-});
+// app.get('/weather', (request, response) => {
+//   response.send('Weather!');
+// });
 
 
 function locationHandler(request, response) {
@@ -36,6 +34,11 @@ function locationHandler(request, response) {
   response.send(location);
 }
 
+function weatherHandler(request, response) {
+  const weatherData = require('./data/posts.json');
+  const weather = new Weather(weatherData);
+  response.send(weather);
+}
 
 //Has to be after stuff loads too
 app.use(notFoundHandler);
@@ -64,7 +67,14 @@ function notFoundHandler(request, response) {
 //Constructor functions
 function Location (city, geoData) {  //<<--this is saying that it needs city and geoData to be able to run the constructor
   this.search_query = city;
-  this.formatted_query - geoData[0].display_name;
+  this.formatted_query = geoData[0].display_name;
   this.latitude = parseFloat(geoData[0].lat);  //<<--used parseFloat because the info was a string and this will change to numbers
   this.longitude = parseFloat(geoData[0].lon);
+}
+
+function Weather (weatherData) {
+  this.forecast = weatherData[3].title;
+  this.time = weatherData[3].body;
+  // this.latitude = latitude;
+  // this.longitude = longitude;
 }
