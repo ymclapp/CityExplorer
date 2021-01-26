@@ -69,7 +69,26 @@ function locationHandler(request, response) {
 }
 
 function weatherHandler(request, response) {  //<<--use when I create real API for weather
+  const city = request.query.city;
+  const url = 'https://api.weatherbit.io/v2.0/forecast/daily';
+  superagent.get(url)  
+    .query({
+      city:  city,
+      key: process.env.WEATHER_API_KEY,
+      days: 4,
+      function: 'json'
+    })
+    .then(weatherResponse => {
+      let weatherData = weatherResponse.body.data;  //this is what comes back from API in json
+      console.log(weatherData);
 
+      const weather = new Weather(city, weatherData);
+      response.send(weather);
+    })
+    .catch(err => {
+      console.log(err);
+      errorHandler(err, request, response);
+    });
 }
 
 //Has to be after stuff loads too
@@ -108,3 +127,9 @@ function Location (city, geoData) {  //<<--this is saying that it needs city and
 //   this.forecast = weatherData.summary;
 //   this.time = weatherData.time;
 // }
+
+function Weather (city, weatherData) {
+  this.search_query = city;
+  this.forecast = weatherData.weather;
+  this.time = weatherData.datetime;
+}
