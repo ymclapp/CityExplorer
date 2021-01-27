@@ -106,6 +106,7 @@ app.listen(PORT, () => console.log(`App is listening on ${PORT}`)); //<<--these 
 
 //Route handlers
 function errorHandler(error, request, response, next) {
+  console.error(error);
   response.status(500).json({
     error: true,
     message: error.message,
