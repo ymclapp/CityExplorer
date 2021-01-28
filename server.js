@@ -77,8 +77,8 @@ function weatherHandler(request, response) {  //<<--use when I create real API f
     .query({
       city:  city,
       key: process.env.WEATHER_API_KEY,
-      days: 4,
-      function: 'json'
+      // days: 4,
+      // function: 'json'
     })
     .then(weatherResponse => {
       let weatherData = weatherResponse.body.data;  //this is what comes back from API in json
