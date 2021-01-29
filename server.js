@@ -166,7 +166,7 @@ function Location(city, geoData) { //<<--this is saying that it needs city and g
 //   this.time = weatherData.time;
 // }
 
-function Weather(dailyWeather) {
-  this.forecast = dailyWeather.summary;
-  this.time = dailyWeather.datetime;
+function Weather(weatherData) {
+  this.forecast = weatherData.summary;
+  this.time = weatherData.datetime;
 }
