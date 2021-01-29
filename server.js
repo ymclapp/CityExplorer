@@ -149,8 +149,7 @@ function Location (city, geoData) {  //<<--this is saying that it needs city and
 //   this.time = weatherData.time;
 // }
 
-function Weather (city, weatherData) {
-  this.search_query = city;
+function Weather (weatherData) {
   this.forecast = weatherData.weather;
   this.time = weatherData.datetime;
 }
