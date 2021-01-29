@@ -70,44 +70,46 @@ function locationHandler(request, response) {
     });
 }
 
-//function weatherHandler(request, response) {  //<<--junk for when he is using darksky.json - this works, but darksky doesn't
-//   const latitude = request.query.latitude;
-  // const url = 'https://api.weatherbit.io/v2.0/forecast/daily';
-  // superagent.get(url)
-  //   .query({
-  //     city:  city,
-  //     key: process.env.WEATHER_API_KEY,
-  //     days: 4
-  //   })
-//   const weatherResults = [];  <<--for returning an array of information
-//   weatherData.daily.data.forEach(dailyWeather => {
-//     weatherResults.push(new Weather(dailyWeather));
-//   });
-//   // const weather = new Weather(weatherData);
-//   response.send(weatherResults);
-// }
-
-function weatherHandler(request, response) {  //<<--this appears to work manually.  Need to get to work in City Exploerer and need to get the forEach to work.
-  const city = request.query.city;
+function weatherHandler(request, response) {  //<<--junk for when he is using darksky.json - this works, but darksky doesn't
+ const latitude = request.query.latitude;
+ const longitude = request.query.longitude;
   const url = 'https://api.weatherbit.io/v2.0/forecast/daily';
   superagent.get(url)
     .query({
-      city:  city,
+      longitude: longitude,
+       latitude: latitude,
       key: process.env.WEATHER_API_KEY,
       days: 4
     })
-    .then(weatherResponse => {
-      let weatherData = weatherResponse.body.data;  //this is what comes back from API in json
-      console.log(weatherData);
-
-      const weather = new Weather(city, weatherData);
-      response.send(weather);
-    })
-    .catch(err => {
-      console.log(err);
-      errorHandler(err, request, response);
-    });
+  const weatherResults = [];  //<<--for returning an array of information
+  weatherData.daily.data.forEach(dailyWeather => {
+    weatherResults.push(new Weather(dailyWeather));
+  });
+  // const weather = new Weather(weatherData);
+  response.send(weatherResults);
 }
+
+// function weatherHandler(request, response) {  //<<--this appears to work manually.  Need to get to work in City Exploerer and need to get the forEach to work.
+//   const city = request.query.city;
+//   const url = 'https://api.weatherbit.io/v2.0/forecast/daily';
+//   superagent.get(url)
+//     .query({
+//       city:  city,
+//       key: process.env.WEATHER_API_KEY,
+//       days: 4
+//     })
+//     .then(weatherResponse => {
+//       let weatherData = weatherResponse.body.data;  //this is what comes back from API in json
+//       console.log(weatherData);
+
+//       const weather = new Weather(city, weatherData);
+//       response.send(weather);
+//     })
+//     .catch(err => {
+//       console.log(err);
+//       errorHandler(err, request, response);
+//     });
+// }
 
 
 
@@ -149,7 +151,7 @@ function Location (city, geoData) {  //<<--this is saying that it needs city and
 //   this.time = weatherData.time;
 // }
 
-function Weather (weatherData) {
-  this.forecast = weatherData.weather;
-  this.time = weatherData.datetime;
+function Weather (weatherResults) {
+  this.forecast = weatherResults.summary;
+  this.time = weatherResults.datetime;
 }
