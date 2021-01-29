@@ -53,7 +53,7 @@ function locationHandler(request, response) {
   const url = 'https://us1.locationiq.com/v1/search.php';
   superagent.get(url)
     .query({
-      key:  process.env.GEO_KEY,
+      key:  process.env.GEOCODE_API_KEY,
       q:  city,
       format:  'json'
     })
@@ -70,15 +70,31 @@ function locationHandler(request, response) {
     });
 }
 
-function weatherHandler(request, response) {  //<<--use when I create real API for weather
+//function weatherHandler(request, response) {  //<<--junk for when he is using darksky.json - this works, but darksky doesn't
+//   const latitude = request.query.latitude;
+  // const url = 'https://api.weatherbit.io/v2.0/forecast/daily';
+  // superagent.get(url)
+  //   .query({
+  //     city:  city,
+  //     key: process.env.WEATHER_API_KEY,
+  //     days: 4
+  //   })
+//   const weatherResults = [];  <<--for returning an array of information
+//   weatherData.daily.data.forEach(dailyWeather => {
+//     weatherResults.push(new Weather(dailyWeather));
+//   });
+//   // const weather = new Weather(weatherData);
+//   response.send(weatherResults);
+// }
+
+function weatherHandler(request, response) {  //<<--this appears to work manually.  Need to get to work in City Exploerer and need to get the forEach to work.
   const city = request.query.city;
   const url = 'https://api.weatherbit.io/v2.0/forecast/daily';
-  superagent.get(url)  
+  superagent.get(url)
     .query({
       city:  city,
       key: process.env.WEATHER_API_KEY,
-      // days: 4,
-      // function: 'json'
+      days: 4
     })
     .then(weatherResponse => {
       let weatherData = weatherResponse.body.data;  //this is what comes back from API in json
