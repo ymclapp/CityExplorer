@@ -47,7 +47,7 @@ app.get('/weather', weatherHandler);
 // }
 
 function locationHandler(request, response) {
-  if(!process.env.GEO_KEY) throw 'GEO_KEY not found';
+  if(!process.env.GEOCODE_API_KEY) throw 'GEO_KEY not found';
 
   const city = request.query.city;
   const url = 'https://us1.locationiq.com/v1/search.php';
