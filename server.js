@@ -76,7 +76,7 @@ function weatherHandler(request, response) {
   
   superagent.get(url)
     .query({
-      city: reno,
+      city: 'reno',
       key: process.env.WEATHER_API_KEY,
       days: 4
     })
