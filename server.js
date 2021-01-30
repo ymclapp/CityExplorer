@@ -71,12 +71,12 @@ function locationHandler(request, response) {
 }
 
 function weatherHandler(request, response) {
-  const city = request.query.city;
+  // const city = request.query.city;
   const url = 'https://api.weatherbit.io/v2.0/forecast/daily';
   
   superagent.get(url)
     .query({
-      city: city,
+      city: reno,
       key: process.env.WEATHER_API_KEY,
       days: 4
     })
