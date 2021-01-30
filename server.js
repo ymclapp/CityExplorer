@@ -71,7 +71,7 @@ function locationHandler(request, response) {
 }
 
 function weatherHandler(request, response) {
-  const city = request.query.search_query;
+  const city = request.query.city;
   const url = 'https://api.weatherbit.io/v2.0/forecast/daily';
   
   superagent.get(url)
@@ -82,14 +82,17 @@ function weatherHandler(request, response) {
     })
 
     .then(weatherResponse => {
-      let weatherData = weatherResponse.body.data; //this is what comes back from API in json
+      let weatherData = weatherResponse.body; //this is what comes back from API in json
       console.log(weatherData);
 
-      const weatherResults = []; //<<--for returning an array of information
-      weatherData.daily.data.forEach(dailyWeather => {
-        weatherResults.push(new Weather(dailyWeather));
+      // const weatherResults = []; //<<--for returning an array of information
+      // weatherData.daily.data.forEach(dailyWeather => {
+      //   weatherResults.push(new Weather(dailyWeather));
+      //})
+      let dailyResults = weatherData.data.map(dailyWeather => {
+        return new Weather(dailyWeather);
       })
-
+      response.send(dailyResults);
     })
 
     .catch(err => {
@@ -165,6 +168,6 @@ function Location(city, geoData) { //<<--this is saying that it needs city and g
 // }
 
 function Weather(weatherData) {
-  this.forecast = weatherData.summary;
+  this.forecast = weatherData.weather.description;
   this.time = weatherData.datetime;
 }
