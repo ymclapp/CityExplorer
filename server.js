@@ -5,9 +5,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const superagent = require('superagent');
-const {
-  json
-} = require('express');
+const { json } = require('express');
 
 const PORT = process.env.PORT;
 const app = express();
@@ -93,10 +91,11 @@ function weatherHandler(request, response) {
         weatherResults.push(new Weather(dailyWeather));
       })
 
-        .catch(err => {
-          console.log(err);
-          errorHandler(err, request, response);
-        })
+    })
+
+    .catch(err => {
+      console.log(err);
+      errorHandler(err, request, response);
     });
 }
 
