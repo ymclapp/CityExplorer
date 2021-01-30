@@ -71,13 +71,12 @@ function locationHandler(request, response) {
 }
 
 function weatherHandler(request, response) {
-  const latitude = request.query.latitude;
-  const longitude = request.query.longitude;
+  const city = request.query.search_query;
   const url = 'https://api.weatherbit.io/v2.0/forecast/daily';
+  
   superagent.get(url)
     .query({
-      longitude: longitude,
-      latitude: latitude,
+      city: city,
       key: process.env.WEATHER_API_KEY,
       days: 4
     })
