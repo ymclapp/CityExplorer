@@ -130,15 +130,15 @@ function weatherHandler(request, response) {  //<<--this handler works
 
 function yelpHandler(request, response) {
   console.log(request.query);
-  const latitude = request.query.latitude;
-  const longitude = request.query.longitude;
+  const lat = request.query.latitude;
+  const lon = request.query.longitude;
   const url = 'https://api.yelp.com/v3/businesses/search';
 
   superagent.get(url)
     .set('Authorization', 'Bearer' + process.env.YELP_Key)  //<<'Authorization is the name that yelp is requiring and "bearer" with the key included is the value.  Per yelp API directions:  "To authenticate API calls with the API Key, set the Authorization HTTP header value as Bearer API_KEY".  https://www.yelp.com/developers/documentation/v3/authentication
     .query({
-      latitude: latitude,
-      longitude: longitude,
+      latitude: lat,
+      longitude: lon,
       term: restaurants
     })
 
