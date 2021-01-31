@@ -71,12 +71,12 @@ function locationHandler(request, response) {
 }
 
 function weatherHandler(request, response) {
-  // const city = request.query.city;
+  const city = request.query.search_query;  //<<--removing this and hardcoding the city name (ex. 'reno') worked, trying other, non-hardcoded ways
   const url = 'https://api.weatherbit.io/v2.0/forecast/daily';
   
   superagent.get(url)
     .query({
-      city: 'reno',
+      city: city,
       key: process.env.WEATHER_API_KEY,
       days: 4
     })
