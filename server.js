@@ -23,6 +23,7 @@ app.get('/bad', (request, response) => {
 
 app.get('/location', locationHandler);
 app.get('/weather', weatherHandler);
+app.get('/yelp', yelpHandler);
 
 // app.get('/weather', (request, response) => {
 //   response.send('Weather!');
@@ -46,7 +47,7 @@ app.get('/weather', weatherHandler);
 //   response.send(weatherResults);
 // }
 
-function locationHandler(request, response) {
+function locationHandler(request, response) {  //<<this handler works
   if (!process.env.GEOCODE_API_KEY) throw 'GEO_KEY not found';
 
   const city = request.query.city;
@@ -70,10 +71,10 @@ function locationHandler(request, response) {
     });
 }
 
-function weatherHandler(request, response) {
+function weatherHandler(request, response) {  //<<--this handler works
   const city = request.query.search_query;  //<<--removing this and hardcoding the city name (ex. 'reno') worked, trying other, non-hardcoded ways
   const url = 'https://api.weatherbit.io/v2.0/forecast/daily';
-  
+
   superagent.get(url)
     .query({
       city: city,
@@ -85,7 +86,7 @@ function weatherHandler(request, response) {
       let weatherData = weatherResponse.body; //this is what comes back from API in json
       console.log(weatherData);
 
-      // const weatherResults = []; //<<--for returning an array of information
+      // const weatherResults = []; //<<--for returning an array of information - doesn't work
       // weatherData.daily.data.forEach(dailyWeather => {
       //   weatherResults.push(new Weather(dailyWeather));
       //})
@@ -126,6 +127,34 @@ function weatherHandler(request, response) {
 //       errorHandler(err, request, response);
 //     });
 // }
+
+function yelpHandler(request, response) {
+  console.log(request.query);
+  const lat = request.query.latitude;
+  const lon = request.query.longitude;
+  const url = 'https://api.yelp.com/v3/businesses/search';
+
+  superagent.get(url)
+    .set('Authorization', 'Bearer' + process.env.YELP_Key)  //<<'Authorization is the name that yelp is requiring and "bearer" with the key included is the value.  Per yelp API directions:  "To authenticate API calls with the API Key, set the Authorization HTTP header value as Bearer API_KEY".  https://www.yelp.com/developers/documentation/v3/authentication
+    .query({
+      latitude: lat,
+      longitude: lon,
+      term: restaurants
+    })
+
+    .then(yelpResponse => {
+      let yelpData = yelpResponse.body; //this is what comes back from API in json
+      let yelpResults = yelpData.businesses.map(allRestaurants => {
+        return new Restaurant(allRestaurants);
+      })
+      response.send(yelpResults);
+    })
+
+    .catch(err => {
+      console.log(err);
+      errorHandler(err, request, response);
+    });
+}
 
 
 
@@ -170,4 +199,13 @@ function Location(city, geoData) { //<<--this is saying that it needs city and g
 function Weather(weatherData) {
   this.forecast = weatherData.weather.description;
   this.time = weatherData.datetime;
+}
+
+
+function Restaurant(yelpData) {
+  this.name = yelpData.name;
+  this. image_url = yelpData.image_url;
+  this.rating = yelpData.rating;
+  this.url = yelpData.url;
+  this.price = yelpData.price;
 }
