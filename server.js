@@ -31,11 +31,22 @@ const locationCache = {  //<<--an oobject for our cache
 };
 
 function getLocationFromCache(city) {
-  return locationCache[city];
+  const cacheEntry =  locationCache[city];  //<<--removed the return and changed to const and adding if statement if there is a cacheEntry
+  if(cacheEntry) {  //<<--if there is one, then return it
+    if(cacheEntry.cacheTime < Date.now() - 5000) {  //<<--if the cache time was before 5 seconds then use it
+      delete locationCache[city];  //<<--if greater than 5 seconds ago then delete it
+      return null;  //<<-- returning null is to say there is nothing in cache for the requested location and it will capture it from API and save to cache
+    }
+    return cacheEntry.location;
+  }
+  return null;
 }
 
 function setLocationInCache(city, location) {
-  locationCache[city] = location;
+  locationCache[city] = {
+    cacheTime: new Date(),  //<<--added the date/time here to work with expiration
+    location,
+  };
   console.log('Location cache update', locationCache);
 }
 
