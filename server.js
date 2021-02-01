@@ -132,14 +132,15 @@ function yelpHandler(request, response) {
   console.log(request.query);
   const lat = request.query.latitude;
   const lon = request.query.longitude;
+  const restaurants = request.query.restaurants;
   const url = 'https://api.yelp.com/v3/businesses/search';
 
   superagent.get(url)
-    .set('Authorization', 'Bearer' + process.env.YELP_Key)  //<<'Authorization is the name that yelp is requiring and "bearer" with the key included is the value.  Per yelp API directions:  "To authenticate API calls with the API Key, set the Authorization HTTP header value as Bearer API_KEY".  https://www.yelp.com/developers/documentation/v3/authentication
+    .set('Authorization', 'Bearer ' + process.env.YELP_KEY)  //<<'Authorization is the name that yelp is requiring and "bearer" with the key included is the value.  Per yelp API directions:  "To authenticate API calls with the API Key, set the Authorization HTTP header value as Bearer API_KEY".  https://www.yelp.com/developers/documentation/v3/authentication
     .query({
       latitude: lat,
       longitude: lon,
-      term: `restaurants`
+      category: restaurants
     })
 
     .then(yelpResponse => {
