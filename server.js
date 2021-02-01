@@ -6,6 +6,11 @@ const express = require('express');
 const cors = require('cors');
 const superagent = require('superagent');
 const { json } = require('express');
+const pg = require('pg');
+
+//Database Connection Setup
+const client = new pg.Client(process.env.DATABASE_URL);
+client.on('error', err => { throw err; });
 
 const PORT = process.env.PORT;
 const app = express();
@@ -197,7 +202,17 @@ app.use(notFoundHandler);
 //Has to be after stuff loads
 app.use(errorHandler);
 
-app.listen(PORT, () => console.log(`App is listening on ${PORT}`)); //<<--these are tics not single quotes
+//Make sure the server is listening for requests
+client.connect()
+  .then(() => {
+    console.log('PG connected!');
+
+    app.listen(PORT, () => console.log(`App is listening on ${PORT}`)); //<<--these are tics not single quotes
+  })
+  .catch(err => {
+    throw `PG error!:  ${err.message}`  //<<--these are tics not single quotes
+  });
+
 
 
 //Route handlers
