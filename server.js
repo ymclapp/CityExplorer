@@ -25,6 +25,20 @@ app.get('/location', locationHandler);
 app.get('/weather', weatherHandler);
 app.get('/yelp', yelpHandler);
 
+const locationCache = {  //<<--an oobject for our cache
+  //when someone searches for CR, I want them to pull this information we already have instead "cedar rapids, ia": { display_name: 'Cedar Rapaids', lat: 5, lon: 1 }
+
+};
+
+function getLocationFromCache(city) {
+  return locationCache[city];
+}
+
+function setLocationInCache(city, location) {
+  locationCache[city] = location;
+  console.log('Location cache update', locationCache);
+}
+
 // app.get('/weather', (request, response) => {
 //   response.send('Weather!');
 // });
@@ -51,6 +65,12 @@ function locationHandler(request, response) {  //<<this handler works
   if (!process.env.GEOCODE_API_KEY) throw 'GEO_KEY not found';
 
   const city = request.query.city;
+  const locationFromCache = getLocationFromCache(city);  //<<--before we go out to API, check the cache
+  if(locationFromCache) {  //<<--if we do, then send that
+    response.send(locationFromCache);
+    return;  //<<--if we return inside of here, that just means to stop executing this stuff and move on.  Or we could use an else { ... } below.
+  }
+
   const url = 'https://us1.locationiq.com/v1/search.php';
   superagent.get(url)
     .query({
@@ -63,6 +83,7 @@ function locationHandler(request, response) {  //<<this handler works
       console.log(geoData);
 
       const location = new Location(city, geoData);
+      setLocationInCache(city, location);  //<<--if we don't already have it, then save it too
       response.send(location);
     })
     .catch(err => {
@@ -128,7 +149,7 @@ function weatherHandler(request, response) {  //<<--this handler works
 //     });
 // }
 
-function yelpHandler(request, response) {
+function yelpHandler(request, response) {//<<--this handler works
   console.log(request.query);
   const lat = request.query.latitude;
   const lon = request.query.longitude;
