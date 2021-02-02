@@ -31,34 +31,34 @@ app.get('/weather', weatherHandler);
 app.get('/yelp', yelpHandler);
 
 //Books
-// app.get('/books', (request, response) => {
-//   const SQL = 'SELECT * FROM Books';
-//   client.query(SQL)
-//     .then(results => {
-//       let { rowCount, rows } = results;  //<<--same as if I had created variables to pull out the rowCount and rows from results ex.let rowCount = results.rowCount; and let rows = results.rows;
+app.get('/workouts', (request, response) => {
+  const SQL = 'SELECT * FROM Workouts';
+  client.query(SQL)
+    .then(results => {
+      let { rowCount, rows } = results;  //<<--same as if I had created variables to pull out the rowCount and rows from results ex.let rowCount = results.rowCount; and let rows = results.rows;
 
-//       if(rowCount === 0) {  //<<-- when thinking about the cacheing, this will go to the database and see if there is data that matches the request.  If so, then return the row info, if not, then go out to the API to get the info.
-//         response.send({
-//           error: true,
-//           message: 'Read more, dummy'
-//         });
+      if(rowCount === 0) {  //<<-- when thinking about the cacheing, this will go to the database and see if there is data that matches the request.  If so, then return the row info, if not, then go out to the API to get the info.
+        response.send({
+          error: true,
+          message: 'Read more, dummy'
+        });
 
-//       } else {
-//         response.send({
-//           error: false,
-//           message: rows
-//         })
-//       }
+      } else {
+        response.send({
+          error: false,
+          message: rows
+        })
+      }
 
-//       console.log(results);
+      console.log(results);
 
-//       response.json(results.rows);
-//     })
-//     .catch(err => {
-//       console.log(err);
-//       errorHandler(err, request, response);
-//     });
-// })
+      response.json(results.rows);
+    })
+    .catch(err => {
+      console.log(err);
+      errorHandler(err, request, response);
+    });
+})
 
 const locationCache = {  //<<--an oobject for our cache
   //when someone searches for CR, I want them to pull this information we already have instead "cedar rapids, ia": { display_name: 'Cedar Rapaids', lat: 5, lon: 1 }
