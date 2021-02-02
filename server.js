@@ -60,24 +60,24 @@ app.get('/workouts', (request, response) => {
     });
 })
 
-const locationCache = {  //<<--an oobject for our cache
-  //when someone searches for CR, I want them to pull this information we already have instead "cedar rapids, ia": { display_name: 'Cedar Rapaids', lat: 5, lon: 1 }
+// const locationCache = {  //<<--an object for our cache
+//   //when someone searches for CR, I want them to pull this information we already have instead "cedar rapids, ia": { display_name: 'Cedar Rapaids', lat: 5, lon: 1 }
 
-};
+// };
 
-function getLocationFromCache(city) {
-  const cacheEntry =  locationCache[city];  //<<--removed the return and changed to const and adding if statement if there is a cacheEntry
-  if(cacheEntry) {  //<<--if there is one, then return it
-    if(cacheEntry.cacheTime < Date.now() - 5000) {  //<<--if the cache time was before 5 seconds then use it
-      delete locationCache[city];  //<<--if greater than 5 seconds ago then delete it
-      return null;  //<<-- returning null is to say there is nothing in cache for the requested location and it will capture it from API and save to cache
-    }
-    return cacheEntry.location;
-  }
-  return null;
-}
+// function getLocationFromCache(city) {  //--<<this is a function using local storage to cache
+//   const cacheEntry =  locationCache[city];  //<<--removed the return and changed to const and adding if statement if there is a cacheEntry
+//   if(cacheEntry) {  //<<--if there is one, then return it
+//     if(cacheEntry.cacheTime < Date.now() - 5000) {  //<<--if the cache time was before 5 seconds then use it
+//       delete locationCache[city];  //<<--if greater than 5 seconds ago then delete it
+//       return null;  //<<-- returning null is to say there is nothing in cache for the requested location and it will capture it from API and save to cache
+//     }
+//     return cacheEntry.location;
+//   }
+//   return null;
+// }
 
-// function setLocationInCache(city, location) {  //<<--using local storage
+// function setLocationInCache(city, location) {  //<<--this is a function using local storage to cache
 //   locationCache[city] = {
 //     cacheTime: new Date(),  //<<--added the date/time here to work with expiration
 //     location,
@@ -85,9 +85,21 @@ function getLocationFromCache(city) {
 //   console.log('Location cache update', locationCache);
 // }
 
-function setLocationInCache(location) {
+function getLocationFromCache(city) {  //<<--this is the function for using the database to cache
+  const SQL = `  --<<--these are tic marks not single quotes
+  SELECT * 
+  FROM location2
+  WHERE search_query = $1
+  LIMIT 1  --<<--brings back only one of the rows for that city
+  `;
+  const parameters = [city];
+
+  return client.query(SQL, parameters);
+}
+
+function setLocationInCache(location) {  //<<--this is a function for using the database to cache
   const { search_query, formatted_query, latitude, longitude } = location
-  const SQL = `
+  const SQL = `  --<<--these are tic marks not single quotes
   INSERT INTO location2 (search_query, formatted_query, latitude, longitude)--<<--location2 is the name of the database
   VALUES ($1, $2, $3, $4)  --<<--will take in the results
   RETURNING *
@@ -129,12 +141,28 @@ function locationHandler(request, response) {  //<<this handler works
   if (!process.env.GEOCODE_API_KEY) throw 'GEO_KEY not found';
 
   const city = request.query.city;
-  const locationFromCache = getLocationFromCache(city);  //<<--before we go out to API, check the cache
-  if(locationFromCache) {  //<<--if we do, then send that
-    response.send(locationFromCache);
-    return;  //<<--if we return inside of here, that just means to stop executing this stuff and move on.  Or we could use an else { ... } below.
-  }
 
+  getLocationFromCache(city)
+    .then(result => {
+      console.log('Location from cache', result.rows)
+      let { rowCount, rows} = result;
+      if (rowCount > 0) {
+        response.send(rows[0]);
+      }
+      else {
+        return getLocationFromAPI(city, response);  //<<--have to pass the response so that it will get picked up by the getLocationFromAPI response.send(location)
+      }
+    })
+}
+// const locationFromCache = getLocationFromCache(city);  //<<--before we go out to API, check the cache when using local storage functions
+// if(locationFromCache) {  //<<--if we do, then send that
+//   response.send(locationFromCache);
+//   return;  //<<--if we return inside of here, that just means to stop executing this stuff and move on.  Or we could use an else { ... } below.
+// }
+
+
+function getLocationFromAPI(city, response) {
+  console.log('Requesting location from API', city);
   const url = 'https://us1.locationiq.com/v1/search.php';
   superagent.get(url)
     .query({
