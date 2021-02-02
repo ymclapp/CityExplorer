@@ -6,9 +6,9 @@ CREATE TABLE IF NOT EXISTS Books (
     IsCheckedOut BOOLEAN NOT NULL DEFAULT(FALSE),
     Rating NUMERIC(5,2),
     DatePurchased DATE
-)
+);
 
-CREATE TABLE IF NOT EXISTS locations (
+CREATE TABLE IF NOT EXISTS Location2 (
     Id SERIAL PRIMARY KEY,
     search_query VARCHAR(255),
     formatted_query VARCHAR(255),

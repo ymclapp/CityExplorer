@@ -85,7 +85,23 @@ function getLocationFromCache(city) {
 //   console.log('Location cache update', locationCache);
 // }
 
-function setLocationInCache
+function setLocationInCache(location) {
+  const { search_query, formatted_query, latitude, longitude } = location
+  const SQL = `
+  INSERT INTO location2 (search_query, formatted_query, latitude, longitude)--<<--location2 is the name of the database
+  VALUES ($1, $2, $3, $4)  --<<--will take in the results
+  RETURNING *
+  `;
+  const parameters = [search_query, formatted_query, latitude, longitude];
+
+  return client.query(SQL, parameters)  //<<super duper common error - promisey stuff inside of a function, return a promise that says we're done
+    .then(result => {
+      console.log('Cache Location', result);
+    })
+    .catch(err => {
+      console.log('Failed to cache location', err);
+    })
+}
 
 // app.get('/weather', (request, response) => {
 //   response.send('Weather!');
@@ -128,11 +144,16 @@ function locationHandler(request, response) {  //<<this handler works
     })
     .then(locationResponse => {
       let geoData = locationResponse.body;
-      console.log(geoData);
+      // console.log(geoData);
 
       const location = new Location(city, geoData);
-      setLocationInCache(city, location);  //<<--if we don't already have it, then save it too
-      response.send(location);
+
+      setLocationInCache(location)  //<<--if we don't already have it, then save it too, BUT wait to find out and .then set
+        .then(() => {
+          console.log('Location has been cached', location);
+          response.send(location);
+        });
+
     })
     .catch(err => {
       console.log(err);
