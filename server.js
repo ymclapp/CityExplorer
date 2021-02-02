@@ -77,13 +77,15 @@ function getLocationFromCache(city) {
   return null;
 }
 
-function setLocationInCache(city, location) {
-  locationCache[city] = {
-    cacheTime: new Date(),  //<<--added the date/time here to work with expiration
-    location,
-  };
-  console.log('Location cache update', locationCache);
-}
+// function setLocationInCache(city, location) {  //<<--using local storage
+//   locationCache[city] = {
+//     cacheTime: new Date(),  //<<--added the date/time here to work with expiration
+//     location,
+//   };
+//   console.log('Location cache update', locationCache);
+// }
+
+function setLocationInCache
 
 // app.get('/weather', (request, response) => {
 //   response.send('Weather!');
