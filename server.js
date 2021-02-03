@@ -4,13 +4,12 @@ require('dotenv').config();
 
 const express = require('express');
 const cors = require('cors');
-const superagent = require('superagent');
+// const superagent = require('superagent');  <<--only used in locations
 const { json } = require('express');
 const pg = require('pg');
 
-//Database Connection Setup
-const client = new pg.Client(process.env.DATABASE_URL);
-client.on('error', err => { throw err; });
+const client = require('./modules/client');
+
 
 const PORT = process.env.PORT;
 const app = express();
@@ -25,40 +24,21 @@ app.get('/bad', (request, response) => {
   throw new Error('oops');
 });
 
+const locationHandler = require('./modules/locations');
+const weatherHandler = require('./modules/weather');
+const yelpHandler = require('./modules/yelp');
 
 app.get('/location', locationHandler);
 app.get('/weather', weatherHandler);
 app.get('/yelp', yelpHandler);
+// app.get('/workouts', workoutsHandler);  //<<--comment out since it is breaking after refactoring due to the addHandler
 
-//Books
-app.get('/workouts', (request, response) => {
-  const SQL = 'SELECT * FROM Workouts';
-  client.query(SQL)
-    .then(results => {
-      let { rowCount, rows } = results;  //<<--same as if I had created variables to pull out the rowCount and rows from results ex.let rowCount = results.rowCount; and let rows = results.rows;
+// const workoutsModule = require('./modules/workouts');  //<<--commented out since it is breaking after refactoring due to the addHandler
+// console.log('workoutsModule', workoutsModule);
+// const { workoutsHandler, booksAddHandler } = workoutsModule;  //<<--this would have been workoutsAddHandler, but since I didn't change the name, I put in the current name
 
-      if(rowCount === 0) {  //<<-- when thinking about the cacheing, this will go to the database and see if there is data that matches the request.  If so, then return the row info, if not, then go out to the API to get the info.
-        response.send({
-          error: true,
-          message: 'Read more, dummy'
-        });
 
-      } else {
-        response.send({
-          error: false,
-          message: rows
-        })
-      }
 
-      console.log(results);
-
-      response.json(results.rows);
-    })
-    .catch(err => {
-      console.log(err);
-      errorHandler(err, request, response);
-    });
-})
 
 // const locationCache = {  //<<--an object for our cache
 //   //when someone searches for CR, I want them to pull this information we already have instead "cedar rapids, ia": { display_name: 'Cedar Rapaids', lat: 5, lon: 1 }
@@ -85,35 +65,6 @@ app.get('/workouts', (request, response) => {
 //   console.log('Location cache update', locationCache);
 // }
 
-function getLocationFromCache(city) {  //<<--this is the function for using the database to cache
-  const SQL = `  --<<--these are tic marks not single quotes
-  SELECT * 
-  FROM location2
-  WHERE search_query = $1
-  LIMIT 1  --<<--brings back only one of the rows for that city
-  `;
-  const parameters = [city];
-
-  return client.query(SQL, parameters);
-}
-
-function setLocationInCache(location) {  //<<--this is a function for using the database to cache
-  const { search_query, formatted_query, latitude, longitude } = location
-  const SQL = `  --<<--these are tic marks not single quotes
-  INSERT INTO location2 (search_query, formatted_query, latitude, longitude)--<<--location2 is the name of the database
-  VALUES ($1, $2, $3, $4)  --<<--will take in the results
-  RETURNING *
-  `;
-  const parameters = [search_query, formatted_query, latitude, longitude];
-
-  return client.query(SQL, parameters)  //<<super duper common error - promisey stuff inside of a function, return a promise that says we're done
-    .then(result => {
-      console.log('Cache Location', result);
-    })
-    .catch(err => {
-      console.log('Failed to cache location', err);
-    })
-}
 
 // app.get('/weather', (request, response) => {
 //   response.send('Weather!');
@@ -137,23 +88,7 @@ function setLocationInCache(location) {  //<<--this is a function for using the 
 //   response.send(weatherResults);
 // }
 
-function locationHandler(request, response) {  //<<this handler works
-  if (!process.env.GEOCODE_API_KEY) throw 'GEO_KEY not found';
 
-  const city = request.query.city;
-
-  getLocationFromCache(city)
-    .then(result => {
-      console.log('Location from cache', result.rows)
-      let { rowCount, rows} = result;
-      if (rowCount > 0) {
-        response.send(rows[0]);
-      }
-      else {
-        return getLocationFromAPI(city, response);  //<<--have to pass the response so that it will get picked up by the getLocationFromAPI response.send(location)
-      }
-    })
-}
 // const locationFromCache = getLocationFromCache(city);  //<<--before we go out to API, check the cache when using local storage functions
 // if(locationFromCache) {  //<<--if we do, then send that
 //   response.send(locationFromCache);
@@ -161,64 +96,8 @@ function locationHandler(request, response) {  //<<this handler works
 // }
 
 
-function getLocationFromAPI(city, response) {
-  console.log('Requesting location from API', city);
-  const url = 'https://us1.locationiq.com/v1/search.php';
-  superagent.get(url)
-    .query({
-      key: process.env.GEOCODE_API_KEY,
-      q: city,
-      format: 'json'
-    })
-    .then(locationResponse => {
-      let geoData = locationResponse.body;
-      // console.log(geoData);
 
-      const location = new Location(city, geoData);
 
-      setLocationInCache(location)  //<<--if we don't already have it, then save it too, BUT wait to find out and .then set
-        .then(() => {
-          console.log('Location has been cached', location);
-          response.send(location);
-        });
-
-    })
-    .catch(err => {
-      console.log(err);
-      errorHandler(err, request, response);
-    });
-}
-
-function weatherHandler(request, response) {  //<<--this handler works
-  const city = request.query.search_query;  //<<--removing this and hardcoding the city name (ex. 'reno') worked, trying other, non-hardcoded ways
-  const url = 'https://api.weatherbit.io/v2.0/forecast/daily';
-
-  superagent.get(url)
-    .query({
-      city: city,
-      key: process.env.WEATHER_API_KEY,
-      days: 4
-    })
-
-    .then(weatherResponse => {
-      let weatherData = weatherResponse.body; //this is what comes back from API in json
-      console.log(weatherData);
-
-      // const weatherResults = []; //<<--for returning an array of information - doesn't work
-      // weatherData.daily.data.forEach(dailyWeather => {
-      //   weatherResults.push(new Weather(dailyWeather));
-      //})
-      let dailyResults = weatherData.data.map(dailyWeather => {
-        return new Weather(dailyWeather);
-      })
-      response.send(dailyResults);
-    })
-
-    .catch(err => {
-      console.log(err);
-      errorHandler(err, request, response);
-    });
-}
 
 // const weather = new Weather(weatherData);
 // response.send(weatherResults);
@@ -246,34 +125,7 @@ function weatherHandler(request, response) {  //<<--this handler works
 //     });
 // }
 
-function yelpHandler(request, response) {//<<--this handler works
-  console.log(request.query);
-  const lat = request.query.latitude;
-  const lon = request.query.longitude;
-  const restaurants = request.query.restaurants;
-  const url = 'https://api.yelp.com/v3/businesses/search';
 
-  superagent.get(url)
-    .set('Authorization', 'Bearer ' + process.env.YELP_KEY)  //<<'Authorization is the name that yelp is requiring and "bearer" with the key included is the value.  Per yelp API directions:  "To authenticate API calls with the API Key, set the Authorization HTTP header value as Bearer API_KEY".  https://www.yelp.com/developers/documentation/v3/authentication
-    .query({
-      latitude: lat,
-      longitude: lon,
-      category: restaurants
-    })
-
-    .then(yelpResponse => {
-      let yelpData = yelpResponse.body; //this is what comes back from API in json
-      let yelpResults = yelpData.businesses.map(allRestaurants => {
-        return new Restaurant(allRestaurants);
-      })
-      response.send(yelpResults);
-    })
-
-    .catch(err => {
-      console.log(err);
-      errorHandler(err, request, response);
-    });
-}
 
 //where books was originally
 
@@ -284,7 +136,7 @@ app.use(notFoundHandler);
 app.use(errorHandler);
 
 //Make sure the server is listening for requests - after app.gets and app.uses and errorHandlers
-client.connect()
+client.connect()  //<<--keep in server.js
   .then(() => {
     console.log('PG connected!');
 
@@ -313,28 +165,8 @@ function notFoundHandler(request, response) {
 
 
 //Constructor functions
-function Location(city, geoData) { //<<--this is saying that it needs city and geoData to be able to run the constructor
-  this.search_query = city;
-  this.formatted_query = geoData[0].display_name;
-  this.latitude = parseFloat(geoData[0].lat); //<<--used parseFloat because the info was a string and this will change to numbers
-  this.longitude = parseFloat(geoData[0].lon);
-}
 
 // function Weather (weatherData) {  <<--does not work because the darksky file doesn't work for some reason
 //   this.forecast = weatherData.summary;
 //   this.time = weatherData.time;
 // }
-
-function Weather(weatherData) {
-  this.forecast = weatherData.weather.description;
-  this.time = weatherData.datetime;
-}
-
-
-function Restaurant(yelpData) {
-  this.name = yelpData.name;
-  this. image_url = yelpData.image_url;
-  this.rating = yelpData.rating;
-  this.url = yelpData.url;
-  this.price = yelpData.price;
-}
